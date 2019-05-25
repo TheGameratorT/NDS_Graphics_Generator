@@ -2,10 +2,7 @@
 #include "QtGlobal"
 #include "QDataStream"
 
-lz77::lz77()
-{
-
-}
+//Ported from C# NSMB Editor to Qt C++
 
 QByteArray lz77::Compress(QByteArray data, bool header/* = false*/)
 {
@@ -93,4 +90,72 @@ void lz77::Compress_Search(QByteArray data, int pos, int& match, int& length)
         if(length == maxMatchLen)
             return;
     }
+}
+
+QByteArray lz77::Decompress(QByteArray source, bool header/* = false*/)
+{
+    int DataLen;
+    if(header)
+        DataLen = source[5] | (source[6] << 8) | (source[7] << 16);
+    else
+        DataLen = source[1] | (source[2] << 8) | (source[3] << 16);
+    QByteArray dest = QByteArray::number(DataLen);
+    int i, j, xin, xout;
+    if(header)
+        xin = 8;
+    else
+        xin = 4;
+    xout = 0;
+    int length, offset, windowOffset, data;
+    quint8 d;
+    while (DataLen > 0)
+    {
+        d = static_cast<quint8>(source[xin++]);
+        if (d != 0)
+        {
+            for (i = 0; i < 8; i++)
+            {
+                if ((d & 0x80) != 0)
+                {
+                    data = ((source[xin] << 8) | source[xin + 1]);
+                    xin += 2;
+                    length = (data >> 12) + 3;
+                    offset = data & 0xFFF;
+                    windowOffset = xout - offset - 1;
+                    for (j = 0; j < length; j++)
+                    {
+                        dest[xout++] = dest[windowOffset++];
+                        DataLen--;
+                        if (DataLen == 0)
+                        {
+                            return dest;
+                        }
+                    }
+                }
+                else
+                {
+                    dest[xout++] = source[xin++];
+                    DataLen--;
+                    if (DataLen == 0)
+                    {
+                        return dest;
+                    }
+                }
+                d <<= 1;
+            }
+        }
+        else
+        {
+            for (i = 0; i < 8; i++)
+            {
+                dest[xout++] = source[xin++];
+                DataLen--;
+                if (DataLen == 0)
+                {
+                    return dest;
+                }
+            }
+        }
+    }
+    return dest;
 }

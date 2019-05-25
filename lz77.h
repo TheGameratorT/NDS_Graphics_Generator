@@ -7,9 +7,8 @@
 class lz77
 {
 public:
-    lz77();
-
     static QByteArray Compress(QByteArray data, bool header = false);
+    static QByteArray Decompress(QByteArray source, bool header = false);
     static void Compress_Search(QByteArray data, int pos, int& match, int& length);
 };
 
