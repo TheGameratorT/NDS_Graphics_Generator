@@ -47,8 +47,11 @@ void MainWindow::on_ncg_saveas_btn_clicked()
     if(ui->ncgr_cb->isChecked())
     {
         stream << 0x4E434752; //RGCN
-        stream << 0x0000FEFF; //ÿþ..
-        stream << static_cast<quint64>(0); //Not sure about what data goes here
+        stream << 0x100FEFF;
+        stream << static_cast<quint32>(0x40 + totalPixels); //Section Size
+        stream << static_cast<quint16>(0x10); //Header Size
+        stream << static_cast<quint16>(2); //Number of sub-sections
+
         stream << 0x43484152; //RAHC
         stream << static_cast<quint32>(0x20 + totalPixels); //Section Size (+Header)
         stream << static_cast<quint16>(totalPixels / 1024); //Tile Count
@@ -148,8 +151,11 @@ void MainWindow::on_ncl_saveas_btn_clicked()
     if(ui->nclr_cb->isChecked())
     {
         stream << 0x4E434C52; //RLCN
-        stream << 0x0000FEFF; //ÿþ..
-        stream << static_cast<quint64>(0); //Not sure about what data goes here
+        stream << 0x100FEFF;
+        stream << static_cast<quint32>(0x28 + paletteDataSize); //Section Size
+        stream << static_cast<quint16>(0x10); //Header Size
+        stream << static_cast<quint16>(1); //Number of sub-sections
+
         stream << 0x504C5454; //TTLP
         stream << static_cast<quint32>(0x18 + paletteDataSize); //Section Size (+Header)
         stream << static_cast<quint32>(3); //Palette Bit Depth
