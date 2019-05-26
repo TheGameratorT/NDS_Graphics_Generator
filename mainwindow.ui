@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_ncg">
      <attribute name="title">
@@ -254,8 +254,8 @@
      <widget class="QCheckBox" name="nclr_cb">
       <property name="geometry">
        <rect>
-        <x>140</x>
-        <y>10</y>
+        <x>110</x>
+        <y>40</y>
         <width>61</width>
         <height>20</height>
        </rect>

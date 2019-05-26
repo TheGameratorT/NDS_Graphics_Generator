@@ -138,21 +138,35 @@ void MainWindow::on_ncl_saveas_btn_clicked()
     QDataStream stream(&tempFile, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
+    int colorsPerPalette = 16;
+    if(ui->ncl_is_extended_cb->isChecked())
+        colorsPerPalette = 256;
+
+    int paletteDataSize = colorsPerPalette * ui->ncl_pal_n_sb->value() * 2;
+
+    //If NCLR add header
+    if(ui->nclr_cb->isChecked())
+    {
+        stream << 0x4E434C52; //RLCN
+        stream << 0x0000FEFF; //ÿþ..
+        stream << static_cast<quint64>(0); //Not sure about what data goes here
+        stream << 0x504C5454; //TTLP
+        stream << static_cast<quint32>(0x18 + paletteDataSize); //Section Size (+Header)
+        stream << static_cast<quint32>(3); //Palette Bit Depth
+        stream << static_cast<quint32>(0); //Padding?
+        stream << static_cast<quint32>(paletteDataSize); //Palette Data Size
+        stream << static_cast<quint32>(colorsPerPalette); //Colors Per Palette
+    }
+
     for(int i = 0; i < ui->ncl_pal_n_sb->value(); i++)
     {
-        stream << static_cast<quint16>(0xFF7Fu);
+        stream << static_cast<quint16>(0xFF7F);
 
-        if(!ui->ncl_is_extended_cb->isChecked())
-        {
-            for(int j = 0; j < 15; j++)
-                stream << static_cast<quint16>(0x1F7Cu);
-        }
-        else
-        {
-            for(int j = 0; j < 255; j++)
-                stream << static_cast<quint16>(0x1F7Cu);
-        }
+        for(int j = 1; j < colorsPerPalette; j++)
+            stream << static_cast<quint16>(0x1F7C);
     }
+
+    //NO FOOTER FOR NCLR help
 
     //If LZ77 prompt and process file
     if(ui->ncl_lz77_cb->isChecked())
@@ -183,7 +197,11 @@ void MainWindow::on_ncl_saveas_btn_clicked()
 
     //Choose save directory
     bool SkipFileCreation = false;
-    QString fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Palette (*.ncl);;All Files (*)");
+    QString fileName;
+    if(!ui->nclr_cb->isChecked())
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Color (*.ncl);;All Files (*)");
+    else
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Color Resource (*.nclr);;All Files (*)");
     if(fileName == "")
         SkipFileCreation = true;
 
