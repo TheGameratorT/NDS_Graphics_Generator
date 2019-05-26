@@ -1,3 +1,3 @@
-# NDS_Graphics_Generator
+# NDS Graphics Generator
 
 This tool allows to generate Nintendo DS image file formats.
