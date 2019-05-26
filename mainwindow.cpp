@@ -39,15 +39,39 @@ void MainWindow::on_ncg_saveas_btn_clicked()
     QDataStream stream(&tempFile, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    int num1;
-    if(!ui->ncg_is4bpp->isChecked())
-        num1 = ui->ncg_width_sb->value() * ui->ncg_height_sb->value();
-    else
-        num1 = ui->ncg_width_sb->value() * (ui->ncg_height_sb->value() / 2);
+    int totalPixels = ui->ncg_width_sb->value() * ui->ncg_height_sb->value();
+    if(ui->ncg_is4bpp->isChecked())
+        totalPixels = ui->ncg_width_sb->value() * (ui->ncg_height_sb->value() / 2);
 
-    for (int index = 0; index < num1; ++index)
+    //If NCGR add header
+    if(ui->ncgr_cb->isChecked())
+    {
+        stream << 0x4E434752; //RGCN
+        stream << 0x0000FEFF; //ÿþ..
+        stream << static_cast<quint64>(0); //Not sure about what data goes here
+        stream << 0x43484152; //RAHC
+        stream << static_cast<quint32>(0x20 + totalPixels); //Section Size (+Header)
+        stream << static_cast<quint16>(totalPixels / 1024); //Tile Count
+        stream << static_cast<quint16>(0x20); //Tile Size
+        stream << static_cast<quint32>(4 - ui->ncg_is4bpp->isChecked()); //Tile Bit Depth (is4bpp)
+        stream << static_cast<quint64>(0); //Padding?
+        stream << static_cast<quint32>(totalPixels); //Tile Data Size
+        stream << static_cast<quint32>(0x24); //Tile Data Size
+    }
+
+    for (int index = 0; index < totalPixels; ++index)
     {
         stream << static_cast<quint8>(0);
+    }
+
+    //If NCGR add footer
+    if(ui->ncgr_cb->isChecked())
+    {
+        stream << 0x43504F53; //SOPC
+        stream << 0x10; //Section Size
+        stream << 0; //Padding
+        stream << static_cast<quint16>(0x20); //Tile Size?
+        stream << static_cast<quint16>(totalPixels / 1024); //Tile Count
     }
 
     //If LZ77 prompt and process file
@@ -79,7 +103,11 @@ void MainWindow::on_ncg_saveas_btn_clicked()
 
     //Choose save directory
     bool SkipFileCreation = false;
-    QString fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Graphic (*.ncg);;All Files (*)");
+    QString fileName;
+    if(!ui->ncgr_cb->isChecked())
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Character Graphic (*.ncg);;All Files (*)");
+    else
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Character Graphic Resource (*.ncgr);;All Files (*)");
     if(fileName == "")
         SkipFileCreation = true;
 

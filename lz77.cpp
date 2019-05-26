@@ -2,7 +2,8 @@
 #include "QtGlobal"
 #include "QDataStream"
 
-//Ported from C# NSMB Editor to Qt C++
+//Ported from C# WinForms to Qt C++
+//Original code can be found in Dirbaio's NSMB Editor
 
 QByteArray lz77::Compress(QByteArray data, bool header/* = false*/)
 {
