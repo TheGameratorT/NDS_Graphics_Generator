@@ -24,8 +24,6 @@ private slots:
 
     void on_ncg_is4bpp_stateChanged();
 
-    void calculate_ncg_height();
-
     void on_nsc_saveas_btn_clicked();
 
     void on_nsc_nsmbem_cb_clicked();

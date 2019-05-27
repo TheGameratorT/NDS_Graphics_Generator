@@ -9,7 +9,6 @@
 #include "QtMath"
 #include "lz77.h"
 
-static int NCG_lastSpinBox_height_value;
 static int NSC_lastSpinBox_width_value;
 static int NSC_lastSpinBox_height_value;
 
@@ -22,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent) :
     setFixedSize(size());
     setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
 
-    NCG_lastSpinBox_height_value = ui->ncg_height_sb->value();
     NSC_lastSpinBox_width_value = ui->nsc_width_sb->value();
     NSC_lastSpinBox_height_value = ui->nsc_height_sb->value();
 }
@@ -32,6 +30,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+#define NCG_START {
 void MainWindow::on_ncg_saveas_btn_clicked()
 {
     //Write file
@@ -119,6 +118,10 @@ void MainWindow::on_ncg_saveas_btn_clicked()
         //Write to actual file
         QFile file(fileName);
         file.open(QIODevice::WriteOnly);
+
+        if(!file.isWritable())
+            QMessageBox::critical(this, "Write to file failed!", "Please make sure the file isn't being used by another process and make sure you have enough permissons on it.");
+
         file.write(tempFile);
         file.close();
     }
@@ -134,6 +137,23 @@ void MainWindow::on_ncg_saveas_btn_clicked()
     }
 }
 
+void MainWindow::on_ncg_height_sb_valueChanged()
+{
+    if(ui->ncg_is4bpp->isChecked())
+        if(ui->ncg_height_sb->value() % 2 != 0)
+            ui->ncg_height_sb->setValue(ui->ncg_height_sb->value() + 1);
+}
+
+void MainWindow::on_ncg_is4bpp_stateChanged()
+{
+    if(ui->ncg_height_sb->value() % 2 != 0)
+        ui->ncg_height_sb->setValue(ui->ncg_height_sb->value() + 1);
+
+    ui->ncg_height_sb->setSingleStep(ui->ncg_is4bpp->isChecked() + 1);
+}
+#define NCG_END }
+
+#define NCL_START {
 void MainWindow::on_ncl_saveas_btn_clicked()
 {
     //Write file
@@ -172,7 +192,11 @@ void MainWindow::on_ncl_saveas_btn_clicked()
             stream << static_cast<quint16>(0x1F7C);
     }
 
-    //NO FOOTER FOR NCLR help
+    //If NCLR add footer
+    if(ui->nclr_cb->isChecked())
+    {
+        //No PMCP support as MKDS doesn't need it and I couldn't find examples or uses for it
+    }
 
     //If LZ77 prompt and process file
     if(ui->ncl_lz77_cb->isChecked())
@@ -216,6 +240,10 @@ void MainWindow::on_ncl_saveas_btn_clicked()
         //Write to actual file
         QFile file(fileName);
         file.open(QIODevice::WriteOnly);
+
+        if(!file.isWritable())
+            QMessageBox::critical(this, "Write to file failed!", "Please make sure the file isn't being used by another process and make sure you have enough permissons on it.");
+
         file.write(tempFile);
         file.close();
     }
@@ -230,7 +258,9 @@ void MainWindow::on_ncl_saveas_btn_clicked()
             break;
     }
 }
+#define NCL_END }
 
+#define NSC_START {
 void MainWindow::on_nsc_saveas_btn_clicked()
 {
     //Write file
@@ -284,6 +314,10 @@ void MainWindow::on_nsc_saveas_btn_clicked()
         //Write to actual file
         QFile file(fileName);
         file.open(QIODevice::WriteOnly);
+
+        if(!file.isWritable())
+            QMessageBox::critical(this, "Write to file failed!", "Please make sure the file isn't being used by another process and make sure you have enough permissons on it.");
+
         file.write(tempFile);
         file.close();
     }
@@ -297,35 +331,6 @@ void MainWindow::on_nsc_saveas_btn_clicked()
         if(progress == 0)
             break;
     }
-}
-
-void MainWindow::calculate_ncg_height()
-{
-    if(ui->ncg_is4bpp->isChecked())
-    {
-        if (ui->ncg_height_sb->value() % 2 != 0)
-        {
-            while(ui->ncg_height_sb->value() % 2 != 0)
-            {
-                if(NCG_lastSpinBox_height_value < ui->ncg_height_sb->value())
-                    ui->ncg_height_sb->setValue(ui->ncg_height_sb->value() + 1);
-                else
-                    ui->ncg_height_sb->setValue(ui->ncg_height_sb->value() - 1);
-            }
-        }
-    }
-
-    NCG_lastSpinBox_height_value = ui->ncg_height_sb->value();
-}
-
-void MainWindow::on_ncg_height_sb_valueChanged()
-{
-    MainWindow::calculate_ncg_height();
-}
-
-void MainWindow::on_ncg_is4bpp_stateChanged()
-{
-    MainWindow::calculate_ncg_height();
 }
 
 void MainWindow::on_nsc_nsmbem_cb_clicked()
@@ -383,3 +388,4 @@ void MainWindow::on_nsc_height_sb_valueChanged()
 
     NSC_lastSpinBox_height_value = ui->nsc_height_sb->value();
 }
+#define NSC_END }
