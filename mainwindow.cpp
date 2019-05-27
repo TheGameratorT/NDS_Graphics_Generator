@@ -9,9 +9,6 @@
 #include "QtMath"
 #include "lz77.h"
 
-static int NSC_lastSpinBox_width_value;
-static int NSC_lastSpinBox_height_value;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -335,57 +332,36 @@ void MainWindow::on_nsc_saveas_btn_clicked()
 
 void MainWindow::on_nsc_nsmbem_cb_clicked()
 {
+    int totalPixels = ui->nsc_width_sb->value() * ui->nsc_height_sb->value();
     if(!ui->nsc_nsmbem_cb->isChecked())
     {
-        int totalPixels = ui->nsc_width_sb->value() * ui->nsc_height_sb->value();
         ui->nsc_width_sb->setValue(static_cast<int>(qSqrt(totalPixels)));
         ui->nsc_height_sb->setValue(static_cast<int>(qSqrt(totalPixels)));
-
         ui->nsc_width_sb->setEnabled(true);
     }
     else if(ui->nsc_nsmbem_cb->isChecked())
     {
-        int totalPixels = ui->nsc_width_sb->value() * ui->nsc_height_sb->value();
-        ui->nsc_height_sb->setValue(totalPixels / 256);
-
-        ui->nsc_width_sb->setEnabled(false);
         ui->nsc_width_sb->setValue(256);
+        ui->nsc_height_sb->setValue(totalPixels / 256);
+        ui->nsc_width_sb->setEnabled(false);
     }
 }
 
 void MainWindow::on_nsc_width_sb_valueChanged()
 {
-    while(ui->nsc_width_sb->value() % 8 != 0)
-    {
-        if(NSC_lastSpinBox_width_value < ui->nsc_width_sb->value())
-            ui->nsc_width_sb->setValue(ui->nsc_width_sb->value() + 1);
-        else
-            ui->nsc_width_sb->setValue(ui->nsc_width_sb->value() - 1);
-    }
+    if(ui->nsc_width_sb->value() % 8 != 0)
+        ui->nsc_width_sb->setValue(((ui->nsc_width_sb->value() + 8/2) / 8) * 8); //Round to nearest 8
 
     if(!ui->nsc_nsmbem_cb->isChecked())
-    {
         ui->nsc_height_sb->setValue(ui->nsc_width_sb->value());
-    }
-
-    NSC_lastSpinBox_width_value = ui->nsc_width_sb->value();
 }
 
 void MainWindow::on_nsc_height_sb_valueChanged()
 {
-    while(ui->nsc_height_sb->value() % 8 != 0)
-    {
-        if(NSC_lastSpinBox_height_value < ui->nsc_height_sb->value())
-            ui->nsc_height_sb->setValue(ui->nsc_height_sb->value() + 1);
-        else
-            ui->nsc_height_sb->setValue(ui->nsc_height_sb->value() - 1);
-    }
+    if(ui->nsc_height_sb->value() % 8 != 0)
+        ui->nsc_height_sb->setValue(((ui->nsc_height_sb->value() + 8/2) / 8) * 8); //Round to nearest 8
 
     if(!ui->nsc_nsmbem_cb->isChecked())
-    {
         ui->nsc_width_sb->setValue(ui->nsc_height_sb->value());
-    }
-
-    NSC_lastSpinBox_height_value = ui->nsc_height_sb->value();
 }
 #define NSC_END }
