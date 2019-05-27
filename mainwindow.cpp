@@ -17,9 +17,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setFixedSize(size());
     setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
-
-    NSC_lastSpinBox_width_value = ui->nsc_width_sb->value();
-    NSC_lastSpinBox_height_value = ui->nsc_height_sb->value();
 }
 
 MainWindow::~MainWindow()
@@ -267,6 +264,24 @@ void MainWindow::on_nsc_saveas_btn_clicked()
 
     int totalPixels = ui->nsc_width_sb->value() * ui->nsc_height_sb->value();
     int result = totalPixels / 64;
+    int dataSize = result * 2;
+
+    //If NSCR add header
+    if(ui->nscr_cb->isChecked())
+    {
+        stream << 0x4E534352; //RCSN
+        stream << 0x100FEFF;
+        stream << static_cast<quint32>(0x10 + 0x14 + dataSize); //Section Size
+        stream << static_cast<quint16>(0x10); //Header Size
+        stream << static_cast<quint16>(1); //Number of sub-sections
+
+        stream << 0x5343524E; //NRCS
+        stream << static_cast<quint32>(0x14 + dataSize); //Section Size (+Header)
+        stream << static_cast<quint16>(ui->nsc_width_sb->value()); //Screen Width
+        stream << static_cast<quint16>(ui->nsc_height_sb->value()); //Screen Height
+        stream << static_cast<quint32>(0); //Padding
+        stream << static_cast<quint32>(dataSize); //Screen Data Size
+    }
 
     for (int index = 0; index < result; ++index)
     {
@@ -302,7 +317,11 @@ void MainWindow::on_nsc_saveas_btn_clicked()
 
     //Choose save directory
     bool SkipFileCreation = false;
-    QString fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Tilemap (*.nsc);;All Files (*)");
+    QString fileName;
+    if(!ui->nscr_cb->isChecked())
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Screen (*.nsc);;All Files (*)");
+    else
+        fileName = QFileDialog::getSaveFileName(this, "", "", "Nitro Screen Resource (*.nscr);;All Files (*)");
     if(fileName == "")
         SkipFileCreation = true;
 
@@ -333,17 +352,17 @@ void MainWindow::on_nsc_saveas_btn_clicked()
 void MainWindow::on_nsc_nsmbem_cb_clicked()
 {
     int totalPixels = ui->nsc_width_sb->value() * ui->nsc_height_sb->value();
+    ui->nsc_width_sb->setEnabled(!ui->nsc_nsmbem_cb->isChecked());
+
     if(!ui->nsc_nsmbem_cb->isChecked())
     {
         ui->nsc_width_sb->setValue(static_cast<int>(qSqrt(totalPixels)));
         ui->nsc_height_sb->setValue(static_cast<int>(qSqrt(totalPixels)));
-        ui->nsc_width_sb->setEnabled(true);
     }
     else if(ui->nsc_nsmbem_cb->isChecked())
     {
         ui->nsc_width_sb->setValue(256);
         ui->nsc_height_sb->setValue(totalPixels / 256);
-        ui->nsc_width_sb->setEnabled(false);
     }
 }
 
