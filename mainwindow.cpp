@@ -183,7 +183,10 @@ void MainWindow::on_ncl_saveas_btn_clicked()
         stream << static_cast<quint16>(0xFF7F);
 
         for(int j = 1; j < colorsPerPalette; j++)
-            stream << static_cast<quint16>(0x1F7C);
+        {
+            stream << static_cast<quint8>(j);
+            stream << static_cast<quint8>(i+j);
+        }
     }
 
     //If NCLR add footer
